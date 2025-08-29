@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FizzBuzz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+            background: #17e2e9;
+            overflow: hidden;
+            cursor: default;
+        }
+        
+        canvas {
+            display: block;
+        }
+        
+        .controls {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            z-index: 10;
+        }
+        
+        button {
+            background: rgba(171, 75, 75, 0.1);
+            backdrop-filter: blur(20px);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 24px;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <div class="controls">
+        <button onclick="addParticles()">Add More</button>
+        <button onclick="clearAll()">Clear</button>
+    </div>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        class Particle {
+            constructor(value) {
+                this.value = value;
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.radius = 20;
+                this.type = this.value % 15 === 0 ? 'fizzbuzz' : 
+                           this.value % 3 === 0 ? 'fizz' : 
+                           this.value % 5 === 0 ? 'buzz' : 'number';
+            }
+            
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                if (this.x < this.radius || this.x > canvas.width - this.radius) this.vx *= -1;
+                if (this.y < this.radius || this.y > canvas.height - this.radius) this.vy *= -1;
+            }
+            
+            draw() {
+                ctx.globalAlpha = 0.8;
+                ctx.fillStyle = this.type === 'fizz' ? '#FF6B6B' : 
+                               this.type === 'buzz' ? '#4ECDC4' : 
+                               this.type === 'fizzbuzz' ? '#FFD93D' : '#FFF';
+                               
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#000';
+                ctx.font = '14px -apple-system';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.type === 'number' ? this.value : this.type.toUpperCase().substring(0, 2), this.x, this.y);
+            }
+        }
+        
+        function init() {
+            for (let i = 1; i <= 30; i++) {
+                particles.push(new Particle(i));
+            }
+        }
+        
+        function animate() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            
+            requestAnimationFrame(animate);
+        }
+        
+        function addParticles() {
+            const start = particles.length + 1;
+            for (let i = start; i < start + 10; i++) {
+                particles.push(new Particle(i));
+            }
+        }
+        
+        function clearAll() {
+            particles = [];
+        }
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        canvas.addEventListener('click', (e) => {
+            particles.forEach(p => {
+                const dx = e.clientX - p.x;
+                const dy = e.clientY - p.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 100) {
+                    p.vx += dx * 0.01;
+                    p.vy += dy * 0.01;
+                }
+            });
+        });
+        
+        init();
+        animate();
+    </script>
+</body>
+</html>
